@@ -116,22 +116,26 @@ def download_submissions(user_map, assignment_name):
 
 
 if __name__ == '__main__':
-    print('Please run console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token); in the browser console to get the auth token and paste it here: ')
-    auth_token = input()
-
-    headers = {
-        'Authorization': f'Bearer {auth_token}',
-        'Content-Type': 'application/json'
-    }
-
+    
+    #TODO: get courses and submission folder id dynamically
     #get_courses()
     print('Do you wish to fetch recent submissions? (y/n)')
     if input() == 'y':
+        print('Please run console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token); in the browser console to get the auth token and paste it here: ')
+        auth_token = input()
+
+        headers = {
+            'Authorization': f'Bearer {auth_token}',
+            'Content-Type': 'application/json'
+        }
         get_submissions(SUBMISSION_FOLDER_NAME)
 
     while(True):
-        print('Insert Username of submission to grade:')
+        print('Insert Username of submission to grade: (q to quit)')
         username = input()
+
+        if username == 'q':
+            break
 
         # Search in the user's submission folder for any zip files and unzip them
         user_folder = os.path.join(os.getcwd(), CONTAINER_FOLDER, SUBMISSION_FOLDER_NAME, username)
