@@ -21,10 +21,15 @@ LE_VERSION = "1.74"
 LP_BASE_URL = f"{HOST}/d2l/api/lp/{LP_VERSION}"
 LE_BASE_URL = f"{HOST}/d2l/api/le/{LE_VERSION}"
 
-COURSE_ID = '691169' #Course Name: 24F_CST8288_451 OOP with Design Patterns, Course ID: 691169
-SUBMISSION_FOLDER_ID  = '645558' #TODO: get this dynamically
-SUBMISSION_FOLDER_NAME = 'Assignment 1'
 CONTAINER_FOLDER = 'Assignments'
+
+# Submission folder data class
+class SubmissionFolder:
+    def __init__(self, id, name, num_submissions):
+        self.id = id
+        self.name = name
+        self.num_submissions = num_submissions
+
 
 def test():
     endpoint = f'{LE_BASE_URL}/dropbox/folders'
@@ -40,9 +45,13 @@ def get_courses():
     response.raise_for_status()  # raises exception when not a 2xx response    
     if response.status_code == 200:
         courses = response.json().get('Items', [])
+
+        course_map = {}
         for course in courses:
-            course_info = course.get('OrgUnit', {})
-            print(f"Course Name: {course_info.get('Name')}, Course ID: {course_info.get('Id')}")
+            course_info = course['OrgUnit']
+            if (course_info['Type']['Name'] == 'Course Offering'):
+                course_map[course_info['Name']] = course_info['Id']
+        return course_map
     else:
         print(f"Failed to retrieve courses: {response.status_code}")
 
@@ -56,14 +65,19 @@ def get_folders():
     
     response = requests.get(url, headers=headers)
 
+    folders = []
     if response.status_code == 200:
-        folders = response.json()
-        
-        for folder in folders:
-            print (f'{folder['Name']} - {folder['Id']}')
+        assignments = response.json()
+        print(json.dumps(assignments, indent=4))
 
-def get_submissions(assignment_name):
-    submissionsResponse = requests.get(f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{SUBMISSION_FOLDER_ID}/submissions/', headers=headers)
+        for assignment in assignments:
+            # add folder to submissionFolder list
+            folders.append(SubmissionFolder(assignment['Id'], assignment['Name'], assignment['TotalUsersWithSubmissions']))
+    return folders
+        
+
+def get_submissions(assignment_name, assignment_folder_id):
+    submissionsResponse = requests.get(f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{assignment_folder_id}/submissions/', headers=headers)
     submissions = submissionsResponse.json()
 
     if submissionsResponse.status_code == 200:
@@ -76,16 +90,16 @@ def get_submissions(assignment_name):
       
       print(f'Found {len(users)} submissions')
 
-      download_submissions(users, assignment_name)
+      download_submissions(users, assignment_name, assignment_folder_id)
     else:
       print(f'Failed to retrieve submissions: {submissionsResponse.status_code}')
 
-def download_submissions(user_map, assignment_name):
+def download_submissions(user_map, assignment_name, assignment_folder_id):
     
     for user_id, user_name in user_map.items():
         print(f'Downloading submission for {user_name}')
 
-        userSubmittedFilesUrl = f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{SUBMISSION_FOLDER_ID}/submissions/{user_id}/download'
+        userSubmittedFilesUrl = f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{assignment_folder_id}/submissions/{user_id}/download'
         response = requests.get(userSubmittedFilesUrl, headers=headers)
 
         if response.status_code == 200:
@@ -116,19 +130,38 @@ def download_submissions(user_map, assignment_name):
 
 
 if __name__ == '__main__':
-    
-    #TODO: get courses and submission folder id dynamically
-    #get_courses()
+    print('Running Assignment Fetcher...')
+    print('Run console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token); in the browser console to get the auth token and paste it here: ')
+    auth_token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImU3NjNlMGJhLTgzMDAtNDk4YS04MzI1LWQ4Mjk4NGFlMTViOSIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3MjgxNDgxMzQsImV4cCI6MTcyODE1MTczNCwiaXNzIjoiaHR0cHM6Ly9hcGkuYnJpZ2h0c3BhY2UuY29tL2F1dGgiLCJhdWQiOiJodHRwczovL2FwaS5icmlnaHRzcGFjZS5jb20vYXV0aC90b2tlbiIsInN1YiI6IjE4NjczNyIsInRlbmFudGlkIjoiZDUyYTVkMWUtYWI5NC00MTU5LWJiZWYtYWNlMDA5MzYxNmRjIiwiYXpwIjoibG1zIiwic2NvcGUiOiIqOio6KiIsImp0aSI6IjRlNGVmODg4LTU1MTgtNGRiNi05NTM5LWU2NWU2NGM3NGQyZSJ9.wnxPyy0cTXmaQItL9sU_PGcbLEhgSjRJHQ0VMPlH4T5ixmDbhbxa7GE03sy48tfAfC5MNJEka8FJ0jYmP85P8vmRIUIX7D22kxOg7tTdujSeHer9OAoOIW6tgWz7-UIlKhCCtBHql_B5bKsMQiwUl5VE0jopTF-QFRGLg1umLq7O4V5m2F6S7R6puAtoCwoLnGDgtbY0ETQ7iUZW1VVotgSfHZv7pSEoXTO0szRic4QNRift0AkaBk_tYRgUAVBh-D1wSEUbcuuEAoSr77-w1aa4UWT5NcjyKRqWmQ8zB-NOfUDItoIUOYXY3LYqSJMQ8ZIu5N8VU-o_o5MGFNdPRQ'#input()
+
+    headers = {
+        'Authorization': f'Bearer {auth_token}',
+        'Content-Type': 'application/json'
+    }
+
+    myCourses = get_courses()
+    print('Please select which course you are grading by typing the corresponding number:')
+    for i, course_name in enumerate(myCourses.keys()):
+        print(f'{i+1}. {course_name}')
+
+    course_index = int(input()) - 1
+    COURSE_ID = myCourses[list(myCourses.keys())[course_index]]
+    print(f'Selected course ID: {COURSE_ID}')
+
+    print('Please select which assignment you are grading by typing the corresponding number:')
+
+    folders = get_folders()
+    for i, folder in enumerate(folders):
+        print(f'{i+1}. ({folder.num_submissions} Submissions) : {folder.name}')
+
+    folder_index = int(input()) - 1
+    SUBMISSION_FOLDER_ID = folders[folder_index].id
+    SUBMISSION_FOLDER_NAME = f'Assignment {folder_index + 1}'#folders[folder_index].name
+    print(f'Selected folder ID: {SUBMISSION_FOLDER_ID}')
+
     print('Do you wish to fetch recent submissions? (y/n)')
     if input() == 'y':
-        print('Please run console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token); in the browser console to get the auth token and paste it here: ')
-        auth_token = input()
-
-        headers = {
-            'Authorization': f'Bearer {auth_token}',
-            'Content-Type': 'application/json'
-        }
-        get_submissions(SUBMISSION_FOLDER_NAME)
+        get_submissions(SUBMISSION_FOLDER_NAME, SUBMISSION_FOLDER_ID)
 
     while(True):
         print('Insert Username of submission to grade: (q to quit)')
