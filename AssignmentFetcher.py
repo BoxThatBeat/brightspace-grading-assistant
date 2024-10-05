@@ -61,7 +61,6 @@ def get_folders():
     folders = []
     if response.status_code == 200:
         assignments = response.json()
-        print(json.dumps(assignments, indent=4))
 
         for assignment in assignments:
             # add folder to submissionFolder list
@@ -160,6 +159,13 @@ if __name__ == '__main__':
         print('Insert Username of submission to grade: (q to quit)')
         username = input()
 
+        # trip whitespace on both ends of string
+        username = username.strip()
+
+        if (username == ''):
+            print('Please enter a valid username')
+            continue
+
         if username == 'q':
             break
 
@@ -197,7 +203,7 @@ if __name__ == '__main__':
             print('Searching for .docx or .pdf reports and opening it')
             for root, dirs, files in os.walk(user_folder):
                 for file in files:
-                    if file.endswith('.pdf') or file.endswith('.docx'):
+                    if file.endswith('.pdf') or file.endswith('.docx') or file.endswith('.rtf'):
                         print(file)
                         subprocess.run(['explorer.exe', file], cwd=root, shell=True)
         else:
