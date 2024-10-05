@@ -4,15 +4,8 @@ import requests
 import zipfile
 import subprocess
 
-# Note: don't forget the last / of URLs
-
 # Good API ref: https://github.com/an-algonquin-facilitator/assistant/tree/main/src/api
 
-# To get the auth token, you need to login to Brightspace and run the following in the console:
-#console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token);
-
-# Replace auth token each run (lasts 1 hour)
-#AUTH_TOKEN = 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImU3NjNlMGJhLTgzMDAtNDk4YS04MzI1LWQ4Mjk4NGFlMTViOSIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3Mjc3MDUyMDcsImV4cCI6MTcyNzcwODgwNywiaXNzIjoiaHR0cHM6Ly9hcGkuYnJpZ2h0c3BhY2UuY29tL2F1dGgiLCJhdWQiOiJodHRwczovL2FwaS5icmlnaHRzcGFjZS5jb20vYXV0aC90b2tlbiIsInN1YiI6IjE4NjczNyIsInRlbmFudGlkIjoiZDUyYTVkMWUtYWI5NC00MTU5LWJiZWYtYWNlMDA5MzYxNmRjIiwiYXpwIjoibG1zIiwic2NvcGUiOiIqOio6KiIsImp0aSI6ImFlMThmZWY0LWM1Y2MtNDJlZC1hMGEyLWMyNTQ4OWJiOGJiNSJ9.IQa8GDqdwq7zzu30hkWgs4hWi845Pw32SBlWSLndjGsMxEKb9Jb7IFTabRptO2pCJwln6c0M3zYTjm0I33Ocp1EJsYnsJWjlnqUqGnk4pgmcXEkxrPUaBtKqfbMvQjbzz01WlOuFO7fSB84q_OrZk54jePCZHp0kWBmfVOKWg_bwE6d_65Z7noyBAuLSIa23dWdHzs3h3gso6u5cAZhmnEPj9fEpC9rkY-CQC-u9k-l56eNs-mgtyoQ2f3ZUf-oo1oqyGlA2TzSpa0p2VVY68Hrra2K4NbJUUh6BZDknWOhCFF2t3i94PfgpGFAWUMl25Cyl2agSAp_baBBoZow83g'
 headers = {}
 
 HOST = "https://d52a5d1e-ab94-4159-bbef-ace0093616dc.organizations.api.brightspace.com" #HOST = "https://brightspace.algonquincollege.com"
@@ -132,7 +125,7 @@ def download_submissions(user_map, assignment_name, assignment_folder_id):
 if __name__ == '__main__':
     print('Running Assignment Fetcher...')
     print('Run console.log(JSON.parse(localStorage["D2L.Fetch.Tokens"])["*:*:*"].access_token); in the browser console to get the auth token and paste it here: ')
-    auth_token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImU3NjNlMGJhLTgzMDAtNDk4YS04MzI1LWQ4Mjk4NGFlMTViOSIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3MjgxNDgxMzQsImV4cCI6MTcyODE1MTczNCwiaXNzIjoiaHR0cHM6Ly9hcGkuYnJpZ2h0c3BhY2UuY29tL2F1dGgiLCJhdWQiOiJodHRwczovL2FwaS5icmlnaHRzcGFjZS5jb20vYXV0aC90b2tlbiIsInN1YiI6IjE4NjczNyIsInRlbmFudGlkIjoiZDUyYTVkMWUtYWI5NC00MTU5LWJiZWYtYWNlMDA5MzYxNmRjIiwiYXpwIjoibG1zIiwic2NvcGUiOiIqOio6KiIsImp0aSI6IjRlNGVmODg4LTU1MTgtNGRiNi05NTM5LWU2NWU2NGM3NGQyZSJ9.wnxPyy0cTXmaQItL9sU_PGcbLEhgSjRJHQ0VMPlH4T5ixmDbhbxa7GE03sy48tfAfC5MNJEka8FJ0jYmP85P8vmRIUIX7D22kxOg7tTdujSeHer9OAoOIW6tgWz7-UIlKhCCtBHql_B5bKsMQiwUl5VE0jopTF-QFRGLg1umLq7O4V5m2F6S7R6puAtoCwoLnGDgtbY0ETQ7iUZW1VVotgSfHZv7pSEoXTO0szRic4QNRift0AkaBk_tYRgUAVBh-D1wSEUbcuuEAoSr77-w1aa4UWT5NcjyKRqWmQ8zB-NOfUDItoIUOYXY3LYqSJMQ8ZIu5N8VU-o_o5MGFNdPRQ'#input()
+    auth_token = input()
 
     headers = {
         'Authorization': f'Bearer {auth_token}',
