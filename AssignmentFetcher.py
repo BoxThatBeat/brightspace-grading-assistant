@@ -111,7 +111,7 @@ def download_submissions(user_map, assignment_name, assignment_folder_id):
         
         for root, dirs, files in os.walk(user_folder):
             for file in files:
-                if file.endswith('.zip'):
+                if file.endswith('.zip') or file.endswith('.WAR') or file.endswith('.war'):
 
                     # Unzip to folder named 'submission'
                     with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
@@ -179,7 +179,7 @@ if __name__ == '__main__':
             print('Searching for bin or src folder and opening the parent folder in vscode')
             for root, dirs, files in os.walk(user_folder):
                 for dir in dirs:
-                    if dir == 'bin' or dir == 'src':
+                    if dir == 'bin' or dir == 'src' or dir == 'WEB-INF':
                         # Cd into the folder and then run subprocess to open in vscode
                         print(os.path.join(root, dir))
                         subprocess.run(['code', '.'], cwd=os.path.join(root, dir, '..'), shell=True)
@@ -204,6 +204,13 @@ if __name__ == '__main__':
             for root, dirs, files in os.walk(user_folder):
                 for file in files:
                     if file.endswith('.pdf') or file.endswith('.docx') or file.endswith('.rtf'):
+                        print(file)
+                        subprocess.run(['explorer.exe', file], cwd=root, shell=True)
+
+            print('Opening any .wav or .mp4 or .MOV video files')
+            for root, dirs, files in os.walk(user_folder):
+                for file in files:
+                    if file.endswith('.wav') or file.endswith('.mp4') or file.endswith('.MOV'):
                         print(file)
                         subprocess.run(['explorer.exe', file], cwd=root, shell=True)
         else:
