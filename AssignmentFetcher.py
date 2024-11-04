@@ -23,14 +23,6 @@ class SubmissionFolder:
         self.name = name
         self.num_submissions = num_submissions
 
-
-def test():
-    endpoint = f'{LE_BASE_URL}/dropbox/folders'
-    response = requests.get(endpoint, headers=headers)
-    print(response.text)
-    #print(response.json())
-
-
 def get_courses():
     endpoint = f'{LP_BASE_URL}/enrollments/myenrollments/'
     
@@ -74,25 +66,32 @@ def get_submissions(assignment_name, assignment_folder_id):
 
     if submissionsResponse.status_code == 200:
       # create a dict of user names to id
+      isGroupProject = False;
       users = {}
       for submission in submissions:
-          user_name = submission['Entity']['DisplayName']
-          user_id = submission['Entity']['EntityId']
-          users[user_id] = user_name
+        if (submission['Entity']['EntityType'] == 'Group'):
+            user_name = submission['Entity']['Name']
+            isGroupProject = True;
+        else:
+            user_name = submission['Entity']['DisplayName']
+        user_id = submission['Entity']['EntityId']
+        users[user_id] = user_name
       
       print(f'Found {len(users)} submissions')
 
-      download_submissions(users, assignment_name, assignment_folder_id)
+      download_submissions(users, assignment_name, assignment_folder_id, isGroupProject)
     else:
       print(f'Failed to retrieve submissions: {submissionsResponse.status_code}')
 
-def download_submissions(user_map, assignment_name, assignment_folder_id):
-    
+def download_submissions(user_map, assignment_name, assignment_folder_id, isGroupProject):
     for user_id, user_name in user_map.items():
         print(f'Downloading submission for {user_name}')
 
-        userSubmittedFilesUrl = f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{assignment_folder_id}/submissions/{user_id}/download'
-        response = requests.get(userSubmittedFilesUrl, headers=headers)
+        if isGroupProject:
+            submittedFilesUrl = f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{assignment_folder_id}/group-submissions/{user_id}/download'
+        else:
+            submittedFilesUrl = f'{LE_BASE_URL}/{COURSE_ID}/dropbox/folders/{assignment_folder_id}/submissions/{user_id}/download'
+        response = requests.get(submittedFilesUrl, headers=headers)
 
         if response.status_code == 200:
             user_folder = os.path.join(os.getcwd(), CONTAINER_FOLDER, assignment_name, user_name)
@@ -148,7 +147,7 @@ if __name__ == '__main__':
 
     folder_index = int(input()) - 1
     SUBMISSION_FOLDER_ID = folders[folder_index].id
-    SUBMISSION_FOLDER_NAME = f'Assignment {folder_index + 1}'#folders[folder_index].name
+    SUBMISSION_FOLDER_NAME = f'Assignment {folder_index + 1}'
     print(f'Selected folder ID: {SUBMISSION_FOLDER_ID}')
 
     print('Do you wish to fetch recent submissions? (y/n)')
@@ -156,7 +155,7 @@ if __name__ == '__main__':
         get_submissions(SUBMISSION_FOLDER_NAME, SUBMISSION_FOLDER_ID)
 
     while(True):
-        print('Insert Username of submission to grade: (q to quit)')
+        print('Insert Username or group name of submission to grade: (q to quit)')
         username = input()
 
         # trip whitespace on both ends of string
@@ -172,7 +171,7 @@ if __name__ == '__main__':
         # Search in the user's submission folder for any zip files and unzip them
         user_folder = os.path.join(os.getcwd(), CONTAINER_FOLDER, SUBMISSION_FOLDER_NAME, username)
 
-        print(f'Opening files for user {username}')
+        print(f'Opening files for user/group {username}')
         if os.path.exists(user_folder):
             
             openedInVsCode = False
@@ -207,10 +206,10 @@ if __name__ == '__main__':
                         print(file)
                         subprocess.run(['explorer.exe', file], cwd=root, shell=True)
 
-            print('Opening any .wav or .mp4 or .MOV video files')
+            print('Opening any .wav or .mp4 or .mov or .mkv video files')
             for root, dirs, files in os.walk(user_folder):
                 for file in files:
-                    if file.endswith('.wav') or file.endswith('.mp4') or file.endswith('.MOV'):
+                    if file.endswith('.wav') or file.endswith('.mp4') or file.endswith('.mov') or file.endswith('.mkv'):
                         print(file)
                         subprocess.run(['explorer.exe', file], cwd=root, shell=True)
         else:
