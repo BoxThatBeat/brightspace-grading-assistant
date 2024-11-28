@@ -119,6 +119,45 @@ def download_submissions(user_map, assignment_name, assignment_folder_id, isGrou
                     # Delete zip file
                     os.remove(os.path.join(root, file))
 
+def open_assignment_files(user_folder):
+    openedInVsCode = False
+    print('Searching for bin or src folder and opening the parent folder in vscode')
+    for root, dirs, files in os.walk(user_folder):
+        for dir in dirs:
+            if dir == 'bin' or dir == 'src' or dir == 'WEB-INF':
+                # Cd into the folder and then run subprocess to open in vscode
+                print(os.path.join(root, dir))
+                subprocess.run(['code', '.'], cwd=os.path.join(root, dir, '..'), shell=True)
+                openedInVsCode = True
+                break;
+        if openedInVsCode:
+            break;
+    if not openedInVsCode:
+        print('Searching for .java files and opening parent folder in vscode')
+        for root, dirs, files in os.walk(user_folder):
+            for file in files:
+                print(file)
+                if file.endswith('.java'):
+                    # Cd into the folder and then run subprocess to open in vscode
+                    print(os.path.join(root, dir))
+                    subprocess.run(['code', '.'], cwd=os.path.join(root, dir, '..'), shell=True)
+                    openedInVsCode = True
+                    break;
+            if openedInVsCode:
+                break;
+    print('Searching for .docx or .pdf reports and opening it')
+    for root, dirs, files in os.walk(user_folder):
+        for file in files:
+            if file.endswith('.pdf') or file.endswith('.docx') or file.endswith('.rtf'):
+                print(file)
+                subprocess.run(['explorer.exe', file], cwd=root, shell=True)
+
+    print('Opening any .wav or .mp4 or .mov or .mkv video files')
+    for root, dirs, files in os.walk(user_folder):
+        for file in files:
+            if file.endswith('.wav') or file.endswith('.mp4') or file.endswith('.mov') or file.endswith('.mkv'):
+                print(file)
+                subprocess.run(['explorer.exe', file], cwd=root, shell=True)
 
 if __name__ == '__main__':
     print('Running Assignment Fetcher...')
@@ -139,79 +178,47 @@ if __name__ == '__main__':
     COURSE_ID = myCourses[list(myCourses.keys())[course_index]]
     print(f'Selected course ID: {COURSE_ID}')
 
-    print('Please select which assignment you are grading by typing the corresponding number:')
-
-    folders = get_folders()
-    for i, folder in enumerate(folders):
-        print(f'{i+1}. ({folder.num_submissions} Submissions) : {folder.name}')
-
-    folder_index = int(input()) - 1
-    SUBMISSION_FOLDER_ID = folders[folder_index].id
-    SUBMISSION_FOLDER_NAME = f'Assignment {folder_index + 1}'
-    print(f'Selected folder ID: {SUBMISSION_FOLDER_ID}')
-
-    print('Do you wish to fetch recent submissions? (y/n)')
-    if input() == 'y':
-        get_submissions(SUBMISSION_FOLDER_NAME, SUBMISSION_FOLDER_ID)
-
     while(True):
-        print('Insert Username or group name of submission to grade: (q to quit)')
-        username = input()
+        print('Please select which assignment you are grading by typing the corresponding number: (q to quit)')
 
-        # trip whitespace on both ends of string
-        username = username.strip()
+        folders = get_folders()
+        for i, folder in enumerate(folders):
+            print(f'{i+1}. ({folder.num_submissions} Submissions) : {folder.name}')
 
-        if (username == ''):
-            print('Please enter a valid username')
-            continue
-
-        if username == 'q':
+        user_choice = input()
+        if user_choice == 'q':
             break
 
-        # Search in the user's submission folder for any zip files and unzip them
-        user_folder = os.path.join(os.getcwd(), CONTAINER_FOLDER, SUBMISSION_FOLDER_NAME, username)
+        folder_index = int(user_choice) - 1
+        SUBMISSION_FOLDER_ID = folders[folder_index].id
+        SUBMISSION_FOLDER_NAME = f'Assignment {folder_index + 1}'
+        print(f'Selected folder ID: {SUBMISSION_FOLDER_ID}')
 
-        print(f'Opening files for user/group {username}')
-        if os.path.exists(user_folder):
-            
-            openedInVsCode = False
-            print('Searching for bin or src folder and opening the parent folder in vscode')
-            for root, dirs, files in os.walk(user_folder):
-                for dir in dirs:
-                    if dir == 'bin' or dir == 'src' or dir == 'WEB-INF':
-                        # Cd into the folder and then run subprocess to open in vscode
-                        print(os.path.join(root, dir))
-                        subprocess.run(['code', '.'], cwd=os.path.join(root, dir, '..'), shell=True)
-                        openedInVsCode = True
-                        break;
-                if openedInVsCode:
-                    break;
-            if not openedInVsCode:
-                print('Searching for .java files and opening parent folder in vscode')
-                for root, dirs, files in os.walk(user_folder):
-                    for file in files:
-                        print(file)
-                        if file.endswith('.java'):
-                            # Cd into the folder and then run subprocess to open in vscode
-                            print(os.path.join(root, dir))
-                            subprocess.run(['code', '.'], cwd=os.path.join(root, dir, '..'), shell=True)
-                            openedInVsCode = True
-                            break;
-                    if openedInVsCode:
-                        break;
-            print('Searching for .docx or .pdf reports and opening it')
-            for root, dirs, files in os.walk(user_folder):
-                for file in files:
-                    if file.endswith('.pdf') or file.endswith('.docx') or file.endswith('.rtf'):
-                        print(file)
-                        subprocess.run(['explorer.exe', file], cwd=root, shell=True)
+        print('Do you wish to fetch recent submissions? (y/n)')
+        if input() == 'y':
+            get_submissions(SUBMISSION_FOLDER_NAME, SUBMISSION_FOLDER_ID)
 
-            print('Opening any .wav or .mp4 or .mov or .mkv video files')
-            for root, dirs, files in os.walk(user_folder):
-                for file in files:
-                    if file.endswith('.wav') or file.endswith('.mp4') or file.endswith('.mov') or file.endswith('.mkv'):
-                        print(file)
-                        subprocess.run(['explorer.exe', file], cwd=root, shell=True)
-        else:
-            print('User not found, please try again')
-            continue
+        while(True):
+            print('Insert Username or group name of submission to grade: (b to go back)')
+            username = input()
+
+            # trip whitespace on both ends of string
+            username = username.strip()
+
+            if (username == 'b'):
+                break
+
+            if (username == ''):
+                print('Please enter a valid username')
+                continue
+
+            # Search in the user's submission folder for any zip files and unzip them
+            user_folder = os.path.join(os.getcwd(), CONTAINER_FOLDER, SUBMISSION_FOLDER_NAME, username)
+
+            print(f'Opening files for user/group {username}')
+            if os.path.exists(user_folder):
+                open_assignment_files(user_folder)
+            else:
+                print('User not found, please try again')
+                continue
+    
