@@ -108,16 +108,19 @@ def download_submissions(user_map, assignment_name, assignment_folder_id, isGrou
         # Delete zip file
         os.remove(os.path.join(user_folder, 'submission.zip'))
         
-        for root, dirs, files in os.walk(user_folder):
-            for file in files:
-                if file.endswith('.zip') or file.endswith('.WAR') or file.endswith('.war'):
+        try:
+            for root, dirs, files in os.walk(user_folder):
+                for file in files:
+                    if file.endswith('.zip') or file.endswith('.WAR') or file.endswith('.war'):
 
-                    # Unzip to folder named 'submission'
-                    with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
-                        zip_ref.extractall(os.path.join(root, 'submission'))
+                        # Unzip to folder named 'submission'
+                        with zipfile.ZipFile(os.path.join(root, file), 'r') as zip_ref:
+                            zip_ref.extractall(os.path.join(root, 'submission'))
 
-                    # Delete zip file
-                    os.remove(os.path.join(root, file))
+                        # Delete zip file
+                        os.remove(os.path.join(root, file))
+        except: 
+            print('Failed to unzip user submitted zip file')
 
 def open_assignment_files(user_folder):
     openedInVsCode = False
